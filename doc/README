@@ -1,0 +1,5 @@
+
+Command line to generate the documentation:
+
+doxygen doxygen_config
+firefox html/index.html
