@@ -188,6 +188,22 @@ void myWidgetGL::wireframe(bool const is_wireframe)
     updateGL();
 }
 
+void myWidgetGL::deform_to_baseline()
+{
+    scene_3d.setBaselineAnimation();
+}
+void myWidgetGL::deform_to_iop1()
+{
+    scene_3d.setIop1Animation();
+}
+void myWidgetGL::deform_to_iop2()
+{
+    scene_3d.setIop2Animation();
+}
+void myWidgetGL::deform_to_recovery()
+{
+    scene_3d.setRecoveryAnimation();
+}
 
 void myWidgetGL::resizeGL(int const width,int const height)
 {

@@ -33,7 +33,10 @@ myWindow::myWindow(QWidget *parent)
     connect(ui->quit,SIGNAL(clicked()),this,SLOT(action_quit()));
     connect(ui->draw,SIGNAL(clicked()),this,SLOT(action_draw()));
     connect(ui->wireframe,SIGNAL(clicked()),this,SLOT(action_wireframe()));
-
+    connect(ui->baseline,SIGNAL(clicked()),this,SLOT(action_deform_to_baseline()));
+    connect(ui->iop1,SIGNAL(clicked()),this,SLOT(action_deform_to_iop1()));
+    connect(ui->iop2,SIGNAL(clicked()), this, SLOT(action_deform_to_iop2()));
+    connect(ui->recovery,SIGNAL(clicked()), this, SLOT(action_deform_to_recovery()));
 }
 
 myWindow::~myWindow()
@@ -54,4 +57,23 @@ void myWindow::action_wireframe()
     bool const state_wireframe=ui->wireframe->isChecked();
     glWidget->wireframe(state_wireframe);
 }
+
+void myWindow::action_deform_to_baseline()
+{
+    glWidget->deform_to_baseline();
+}
+void myWindow::action_deform_to_iop1()
+{
+    glWidget->deform_to_iop1();
+}
+void myWindow::action_deform_to_iop2()
+{
+    glWidget->deform_to_iop2();
+}
+
+void myWindow::action_deform_to_recovery()
+{
+    glWidget->deform_to_recovery();
+}
+
 

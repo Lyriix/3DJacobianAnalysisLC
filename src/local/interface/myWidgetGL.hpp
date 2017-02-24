@@ -31,6 +31,12 @@ public:
     void change_draw_state();
     /** Set the wireframe on/off */
     void wireframe(bool est_actif);
+
+    /** Deform the current mesh to the deformation */
+    void deform_to_baseline();
+    void deform_to_iop1();
+    void deform_to_iop2();
+    void deform_to_recovery();
     /** Get the current cameras values */
     cpe::camera_matrices const& camera() const;
 
