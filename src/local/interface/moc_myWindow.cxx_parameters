@@ -1,0 +1,10 @@
+-I/usr/include/qt4
+-I/usr/include/qt4/QtGui
+-I/usr/include/qt4/QtCore
+-I/home/charly/workspace/OphtalmologyProject/JacobianAnalysis/3D/Modelisation
+-D$<$<NOT:$<CONFIG:Debug>>:QT_NO_DEBUG>
+-DQT_GUI_LIB
+-DQT_CORE_LIB
+-o
+/home/charly/workspace/OphtalmologyProject/JacobianAnalysis/3D/Modelisation/src/local/interface/moc_myWindow.cxx
+/home/charly/workspace/OphtalmologyProject/JacobianAnalysis/3D/Modelisation/src/local/interface/myWindow.hpp
