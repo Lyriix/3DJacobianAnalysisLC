@@ -115,7 +115,7 @@ void scene::generate_tube(float r, float x_center, float y_center, float Nu, flo
             float y = y_center + r*sin(theta);
             float z = j/Nv;
             mesh_tube.add_vertex(vec3(x,y,z));
-            mesh_tube.add_color(vec3(j/Nv,1-j/Nv,1-j/Nv));
+            mesh_tube.add_color(vec3(j/Nv,1-j/Nv,1-i/Nu));
 
         }
     }
@@ -146,16 +146,16 @@ void scene::analyzeCsv(const std::vector<std::vector<std::string>>& csvfile)
 
             if( i == 0 )
                 deformation.baseline.push_back(
-                            (std::stof(row[1]) + std::stof(row[2])) / 2
+                            (std::stof(row[0]) + std::stof(row[1])) / 2
                         - (std::stof(row[i]) + std::stof(row[1+i])) / 2 );
             if( i == 2 )
-                deformation.iop1.push_back( (std::stof(row[1]) + std::stof(row[2])) / 2
+                deformation.iop1.push_back( (std::stof(row[0]) + std::stof(row[1])) / 2
                         - (std::stof(row[i]) + std::stof(row[1+i])) / 2);
             if( i == 4 )
-                deformation.iop2.push_back( (std::stof(row[1]) + std::stof(row[2])) / 2
+                deformation.iop2.push_back( (std::stof(row[0]) + std::stof(row[1])) / 2
                         - (std::stof(row[i]) + std::stof(row[1+i])) / 2);
             if( i == 6 )
-                deformation.recovery.push_back( (std::stof(row[1]) + std::stof(row[2])) / 2
+                deformation.recovery.push_back( (std::stof(row[0]) + std::stof(row[1])) / 2
                         - (std::stof(row[i]) + std::stof(row[1+i])) / 2);
 
             //std::cout << (std::stof(row[1]) + std::stof(row[2])) / 2
@@ -210,7 +210,7 @@ void scene::applyDeformation( std::vector<float> &deformation, bool &animationb)
             //mesh_tube_displayed.vertex(ind).x() +=  (deformation.at(j)*cos(theta)/1000);
             //mesh_tube_displayed.vertex(ind).y() += (deformation.at(j)*sin(theta)/1000);
 
-           /* mesh_tube_displayed.vertex(ind).x() =
+            mesh_tube_displayed.vertex(ind).x() =
                     mesh_tube_displayed.vertex(ind).x()
                     - ( mesh_tube_displayed.vertex(ind).x() - mesh_tube.vertex(ind).x())
                     + (deformation.at(j)*cos(theta)/10000)*tps;
@@ -218,11 +218,12 @@ void scene::applyDeformation( std::vector<float> &deformation, bool &animationb)
                     mesh_tube_displayed.vertex(ind).y()
                     - ( mesh_tube_displayed.vertex(ind).y() - mesh_tube.vertex(ind).y())
                     + (deformation.at(j)*sin(theta)/10000)*tps;
-                    */
-            mesh_tube_displayed.vertex(ind).z() =
+
+            /*mesh_tube_displayed.vertex(ind).z() =
                                 mesh_tube_displayed.vertex(ind).z()
                                 - ( mesh_tube_displayed.vertex(ind).z() - mesh_tube.vertex(ind).z())
                                 + (deformation.at(j)*cos(theta)/10000)*tps;
+                                */
 
             //std::cout << cos(theta) << " " << sin(theta) << std::endl;
             //std::cout << ind << std::endl;
