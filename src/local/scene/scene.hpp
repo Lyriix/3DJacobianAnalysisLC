@@ -55,8 +55,12 @@ public:
         std::vector<float> iop2;      //...
         std::vector<float> recovery;  //...
     };
+    void setBaselineAnimation(){baselineAnimation = true;}
+    void setIop1Animation(){iop1animation = true;}
+    void setIop2Animation(){ iop2animation = true;}
+    void setRecoveryAnimation() { recoveryAnimation = true; }
     void animation(deformationArrays &deformation);
-    void applyDeformation( std::vector<float>& deformation);
+    void applyDeformation(std::vector<float>& deformation, bool &animationb);
 
 private:
 
@@ -82,12 +86,18 @@ private:
     cpe::mesh mesh_tube;
     cpe::mesh_opengl mesh_tube_opengl;
 
+    cpe::mesh mesh_tube_displayed;
+    cpe::mesh_opengl mesh_tube_displayed_opengl;
+
 
     /** Structure to analyze the csv */
     //We are gonna compute the means
     deformationArrays deformation;
 
     bool baselineAnimation = false;
+    bool iop1animation = false;
+    bool iop2animation = false;
+    bool recoveryAnimation = false;
     /** Variable for Dragon */
     float tps=0.0f;
     float op = 1.0f;

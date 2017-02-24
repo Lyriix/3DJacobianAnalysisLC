@@ -54,7 +54,8 @@ void scene::load_scene()
     int Nu=20; int Nv= 600;
     //scene::generate_scene(0.0f, 3.0f, 0.0f, 3.0f, Nu, Nv,r,0.8f,1.5f);
     scene::generate_tube(r,0.0f,0.0f,Nu,Nv);
-    baselineAnimation = true;
+    //baselineAnimation = true;
+    //iop1animation = false;
 
 }
 
@@ -76,9 +77,11 @@ void scene::draw_scene()
 
     //Draw the meshes
 
-    mesh_tube_opengl.draw();
-    if(baselineAnimation)
-        animation(deformation);
+   // mesh_tube_opengl.draw();
+    mesh_tube_displayed_opengl.draw();
+
+    animation(deformation);
+
 
 
 }
@@ -102,9 +105,9 @@ void scene::set_widget(myWidgetGL* widget_param)
 
 void scene::generate_tube(float r, float x_center, float y_center, float Nu, float Nv)
 {
-    for ( int j = 0 ; j<= Nv ; j++)
+    for ( int j = 0 ; j< Nv ; j++)
     {
-        for( int i = 0 ; i <= Nu ; i++)
+        for( int i = 0 ; i < Nu ; i++)
         {
 
             float theta = i/(Nu)*2*M_PI ;
@@ -112,15 +115,15 @@ void scene::generate_tube(float r, float x_center, float y_center, float Nu, flo
             float y = y_center + r*sin(theta);
             float z = j/Nv;
             mesh_tube.add_vertex(vec3(x,y,z));
-            mesh_tube.add_color(vec3(j/Nv,1-j/Nv,0.0f));
+            mesh_tube.add_color(vec3(j/Nv,1-j/Nv,1-j/Nv));
 
         }
     }
     std::cout << "size mesh tube " << mesh_tube.size_vertex() << std::endl;
 
-    for ( int j = 0 ; j< Nv ; j++)
+    for ( int j = 0 ; j< Nv-1 ; j++)
     {
-        for( int i = 0 ; i < Nu ; i++)
+        for( int i = 0 ; i < Nu-1 ; i++)
         {
             mesh_tube.add_triangle_index({i+Nu*j, (i+1)+Nu*(j+1), i+Nu*(j+1)});
             mesh_tube.add_triangle_index({i+Nu*j, (i+1)+Nu*(j+1), (i+1)+Nu*j});
@@ -129,7 +132,9 @@ void scene::generate_tube(float r, float x_center, float y_center, float Nu, flo
 
 
     mesh_tube.fill_empty_field_by_default();
+    mesh_tube_displayed = mesh_tube;
     mesh_tube_opengl.fill_vbo(mesh_tube);
+    mesh_tube_displayed_opengl.fill_vbo(mesh_tube_displayed);
 }
 
 void scene::analyzeCsv(const std::vector<std::vector<std::string>>& csvfile)
@@ -164,25 +169,34 @@ void scene::analyzeCsv(const std::vector<std::vector<std::string>>& csvfile)
 
 void scene::animation(deformationArrays &deformation)
 {
-    //applyDeformation(deformation.baseline);
-    std::cout << deformation.baseline.size() << std::endl;
-    for(int i= 0 ; i < 1000000 ; i++)
-    {
-        i = i;
+    if(baselineAnimation){
+        //std::cout << " to baseline" << std::endl;
+        applyDeformation(deformation.baseline, baselineAnimation);
     }
-    applyDeformation(deformation.iop1);
+
+    if(iop1animation)
+    {
+        //std::cout << "to IOP1" <<std::endl;
+        applyDeformation(deformation.iop1, iop1animation);
+    }
+    if(iop2animation)
+        applyDeformation(deformation.iop2, iop2animation);
+    if(recoveryAnimation)
+        applyDeformation(deformation.recovery, recoveryAnimation);
+    //std::cout << baselineAnimation;
 }
 
-void scene::applyDeformation( std::vector<float> &deformation)
+void scene::applyDeformation( std::vector<float> &deformation, bool &animationb)
 {
 
-    float timeStep = 0.2f;
+    float timeStep = 0.02f;
     float T = 1.0f;
+
     //Parcourir les deformations
     //appliquer les deformations Y selon l'axe 0 : Nv
     int j=0;
 
-    int t = 0.0f;
+    //temps is represented by tps in scene::scene.hpp
 
     //mesh_tube.vertex(100).x() += timeStep*deformation[j]/100;
 
@@ -190,18 +204,39 @@ void scene::applyDeformation( std::vector<float> &deformation)
      //std::cout << deformation.at(8) << std::endl;
 
     for( int j = 0 ; j < 600 ; j ++){
-        for( int i=0; i<= 20 ; i++){
-            int ind = i + 21*(j) ;
-            float theta = static_cast<float>(i) / 21* 2* M_PI;
-            mesh_tube.vertex(ind).x() += deformation.at(j)*cos(theta)/1000;
-            mesh_tube.vertex(ind).y() += deformation.at(j)*sin(theta)/1000;
+        for( int i=0; i< 20 ; i++){
+            int ind = i + 20*(j) ;
+            float theta = static_cast<float>(i) / 20* 2* M_PI;
+            //mesh_tube_displayed.vertex(ind).x() +=  (deformation.at(j)*cos(theta)/1000);
+            //mesh_tube_displayed.vertex(ind).y() += (deformation.at(j)*sin(theta)/1000);
+
+           /* mesh_tube_displayed.vertex(ind).x() =
+                    mesh_tube_displayed.vertex(ind).x()
+                    - ( mesh_tube_displayed.vertex(ind).x() - mesh_tube.vertex(ind).x())
+                    + (deformation.at(j)*cos(theta)/10000)*tps;
+            mesh_tube_displayed.vertex(ind).y() =
+                    mesh_tube_displayed.vertex(ind).y()
+                    - ( mesh_tube_displayed.vertex(ind).y() - mesh_tube.vertex(ind).y())
+                    + (deformation.at(j)*sin(theta)/10000)*tps;
+                    */
+            mesh_tube_displayed.vertex(ind).z() =
+                                mesh_tube_displayed.vertex(ind).z()
+                                - ( mesh_tube_displayed.vertex(ind).z() - mesh_tube.vertex(ind).z())
+                                + (deformation.at(j)*cos(theta)/10000)*tps;
+
             //std::cout << cos(theta) << " " << sin(theta) << std::endl;
             //std::cout << ind << std::endl;
         }
     }
-    t+=timeStep;
+    tps+=timeStep;
 
 
-    mesh_tube_opengl.fill_vbo(mesh_tube);
-    baselineAnimation = false;
+
+
+    mesh_tube_displayed_opengl.fill_vbo(mesh_tube_displayed);
+    //std::cout << T-tps << std::endl;
+    if(T - tps < 10e-8){
+        animationb = false;
+        tps = 0.0f;
+    }
 }
