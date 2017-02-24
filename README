@@ -1,0 +1,24 @@
+
+Le programme s'exécute depuis le répertoire en amont de shaders/ et data/.
+
+=====================================================
+Rappel pour compiler avec CMake puis executer:
+
+mkdir build
+cd build
+cmake ..
+make
+cd ..
+build/pgm
+
+=====================================================
+Commandes:
+
+Clic gauche souris + déplacement 
+    => rotation de la caméra.
+Clic droit souris + déplacement 
+    => zoom avant/arrière de la caméra.
+Shift + Clic gauche souris + déplacement 
+    => Translation dans le plan de la caméra.
+Shift + Clic droit souris + déplacement 
+    => Translation avant/arrière de la caméra.
