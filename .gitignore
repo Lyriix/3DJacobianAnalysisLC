@@ -1,0 +1,9 @@
+#Untracked files
+
+CMakeLists.txt.user 
+
+#ignore object and archive anywhere in the tree 
+*.[oa]
+
+#ignore all the compilation files 
+build/*
