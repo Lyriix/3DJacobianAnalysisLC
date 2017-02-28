@@ -34,15 +34,31 @@ public:
     /** \brief Method called at every frame */
     void draw_scene();
 
+    /** Method called to draw or not the tube */
+    void change_draw_tube_state ();
+    /** Method called to draw or not the grid */
+    void change_draw_grid_state();
+
     /** Set the pointer to the parent Widget */
     void set_widget(myWidgetGL* widget_param);
 
     /** Generate  a surface */
-
     void generate_scene(float xmin, float xmax, float ymin, float ymax, int Nu, int Nv, float r, float x_center, float y_center);
 
+    /** Get / Set for the Nu Nv Tube */
+    int& set_Nu_tube() ;
+    int& set_Nv_tube() ;
+    /** Get / Set for Nu,Nv,Nw grid */
+    int& set_Nu_grid() ;
+    int& set_Nv_grid() ;
+    int& set_Nw_grid() ;
     /** Generate a tube */
     void generate_tube(float r, float x_center, float y_center, float Nu, float Nv);
+    cpe::vec3 getArcEnCielColor(int j, int inter);
+
+    /** generate a grid */
+    void generate_grid(int Nu, int Nv, int Nw);
+    /** Generate a grid */
 
     /** Analyze the deformation field from the Csv */
 
@@ -55,12 +71,22 @@ public:
         std::vector<float> iop2;      //...
         std::vector<float> recovery;  //...
     };
+    /** Method called at every frame to perform animations on a draw object*/
+    void animation(deformationArrays &deformation);
+
+
+    /** Method called by animation at every frame to perform the chosen animation on a TUBE */
+    void applyDeformation(std::vector<float>& deformation, bool &animationb);
+    /** Method called by animation_grid to apply a deformation on a given GRID */
+    void applyGridDeformation(std::vector<float> &deformation, bool &animationb);
+
+
+    /** Methods called to start animations */
     void setBaselineAnimation(){baselineAnimation = true;}
     void setIop1Animation(){iop1animation = true;}
     void setIop2Animation(){ iop2animation = true;}
     void setRecoveryAnimation() { recoveryAnimation = true; }
-    void animation(deformationArrays &deformation);
-    void applyDeformation(std::vector<float>& deformation, bool &animationb);
+
 
 private:
 
@@ -76,9 +102,18 @@ private:
     /** The id of the shader do draw meshes */
     GLuint shader_program_id;
 
+    /** Size of the Tube */
+    int Nu_tube = 20;
+    int Nv_tube = 600;
+    /** Size of the grid */
+    int Nu_grid ;
+    int Nv_grid ;
+    int Nw_grid ;
 
     // Data of the scene
-
+    /** Boolean to chose which meshes display */
+    bool draw_tube_state = false;
+    bool draw_grid_state = false;
 
     cpe::mesh mesh_test;
     cpe::mesh_opengl mesh_test_opengl;
@@ -89,6 +124,11 @@ private:
     cpe::mesh mesh_tube_displayed;
     cpe::mesh_opengl mesh_tube_displayed_opengl;
 
+    cpe::mesh grid_d;
+    cpe::mesh_opengl grid_d_opengl;
+
+    cpe::mesh grid;
+    cpe::mesh_opengl grid_opengl;
 
     /** Structure to analyze the csv */
     //We are gonna compute the means

@@ -20,7 +20,11 @@
 
 
 using namespace cpe;
-
+int& scene::set_Nu_tube() {return Nu_tube;}
+int& scene::set_Nv_tube() {return Nv_tube;}
+int& scene::set_Nu_grid() {return Nu_grid;}
+int& scene::set_Nv_grid() {return Nv_grid;}
+int& scene::set_Nw_grid() {return Nw_grid;}
 
 void scene::load_scene()
 {
@@ -32,32 +36,28 @@ void scene::load_scene()
     shader_program_id = read_shader("shaders/shader_mesh.vert",
                                     "shaders/shader_mesh.frag"); PRINT_OPENGL_ERROR();
 
-    std::string csvName("/home/charly/workspace/OphtalmologyProject/JacobianAnalysis/3D/Modelisation/data/yvolution.csv");
+    std::string csvName("/home/charly/workspace/OphtalmologyProject/JacobianAnalysis/3D/Modelisation/data/YY.csv");
 
     std::vector<std::vector<std::string>> bcd = readCsvFile(csvName);
     analyzeCsv(bcd);
-    //For debugging only
-    /*for (const auto & bc : bcd)
-    {
-        for(auto const & a : bc )
-            std::cout << a ;
-        std::cout <<std::endl;
-    }*/
-
 
     //*****************************************//
     // Generate user defined mesh              //
     //*****************************************//
 
-    float r=0.2f;
+    float r=0.6f;
     float h=1.0f;
-    int Nu=20; int Nv= 600;
-    //scene::generate_scene(0.0f, 3.0f, 0.0f, 3.0f, Nu, Nv,r,0.8f,1.5f);
-    scene::generate_tube(r,0.0f,0.0f,Nu,Nv);
-    //baselineAnimation = true;
-    //iop1animation = false;
-
+    //int Nu=20; int Nv= 600;
+    Nu_tube = 20;
+    Nv_tube = 600;
+    Nu_grid = 40;
+    Nv_grid = 40;
+    Nw_grid = 40;
+    scene::generate_tube(r,0.0f,0.0f,Nu_tube,Nv_tube);
+    scene::generate_grid(Nu_grid,Nv_grid,Nw_grid);
 }
+
+
 
 void scene::draw_scene()
 {
@@ -74,18 +74,27 @@ void scene::draw_scene()
     glUniformMatrix4fv(get_uni_loc(shader_program_id,"camera_projection"),1,false,cam.projection.pointer());   PRINT_OPENGL_ERROR();
     glUniformMatrix4fv(get_uni_loc(shader_program_id,"normal_matrix"),1,false,cam.normal.pointer());           PRINT_OPENGL_ERROR();
 
-
     //Draw the meshes
 
-   // mesh_tube_opengl.draw();
-    mesh_tube_displayed_opengl.draw();
+    //mesh_tube_opengl.draw();
+    if(draw_tube_state)
+    {
+        mesh_tube_displayed_opengl.draw();
 
+    }
+    if(draw_grid_state)
+        grid_d_opengl.draw();
     animation(deformation);
-
-
-
 }
 
+void scene::change_draw_tube_state()
+{
+    draw_tube_state=!draw_tube_state;
+}
+void scene::change_draw_grid_state()
+{
+    draw_grid_state=!draw_grid_state;
+}
 
 scene::scene()
     :shader_program_id(0)
@@ -101,7 +110,103 @@ void scene::set_widget(myWidgetGL* widget_param)
 {
     pwidget=widget_param;
 }
+/* //TEST
+void scene::generate_grid(int Nu, int Nv, int Nw)
+{
+    grid_d.add_vertex(vec3(0.0f,0.0f,0.0f));
+    grid_d.add_vertex(vec3(0.0f,1.0f,0.0f));
+    grid_d.add_vertex(vec3(1.0f,1.0f,0.0f));
 
+    grid_d.add_vertex(vec3(1.0f,0.0f,0.0f));
+
+    grid_d.add_vertex(vec3(0.0f,0.0f,1.0f));
+
+    grid_d.add_triangle_index({0,1,2});
+    grid_d.add_triangle_index({0,2,3});
+    grid_d.add_triangle_index({0,1,4});
+    grid_d.fill_empty_field_by_default();
+    grid_d_opengl.fill_vbo(grid_d);
+}
+*/
+
+void scene::generate_grid(int Nu, int Nv, int Nw)
+{
+    float u=0, v=0, w=0;
+    for(int k=0; k<Nw; k++)
+    {
+         w = (float)k/Nw;
+        for( int j=0; j<Nv; j++)
+        {
+             v = (float)j/Nv;
+            for( int i=0; i<Nu; i++)
+            {
+                 u = (float)i/Nu;
+                grid_d.add_vertex(vec3(u,v,w));
+                grid_d.add_color(getArcEnCielColor(k,Nw));
+               // grid_d.add_color(vec3(1.0f,0.0f,0.0f));
+               // std::cout << " vec3 " <<u << " " << v << " " << w<< std::endl;
+            }
+        }
+    }
+    std::cout << "Size mesh grid : "<<grid_d.size_vertex() << std::endl;
+    for(int k=0; k<Nw-1; k++)
+    {
+        for( int j=0; j<Nv-1; j++)
+        {
+            for( int i=0; i<Nu-1; i++)
+            {
+                //faces
+                grid_d.add_triangle_index({i+Nu*j+Nv*Nu*k, i+1+Nu*j+Nv*Nu*k, i+1+Nu*(1+j)+Nv*Nu*k});
+                grid_d.add_triangle_index({i+Nu*j+Nv*Nu*k, i+Nu*(1+j)+Nv*Nu*k, i+1+Nu*(1+j)+Nv*Nu*k});
+                //std::cout<<"ajout de "<< i+Nv*j+Nv*Nu*k <<" "<< i+1+Nv*j+Nv*Nu*k <<" "<< i+1+Nv*(1+j)+Nv*Nu*k<<std::endl;
+                //bottom
+                grid_d.add_triangle_index({i+Nu*j+Nv*Nu*k, i+1+Nu*j+Nv*Nu*k, i+1+Nu*(j)+Nv*Nu*(1+k)});
+                grid_d.add_triangle_index({i+Nu*j+Nv*Nu*k, i+Nu*(j)+Nv*Nu*(1+k), i+1+Nu*(j)+Nv*Nu*(1+k)});
+                //Left Sides
+                grid_d.add_triangle_index({i+Nu*j+Nv*Nu*k, i+Nu*(1+j)+Nv*Nu*k, i+Nu*(1+j)+Nv*Nu*(1+k)});
+                grid_d.add_triangle_index({i+Nu*j+Nv*Nu*k, i+Nu*(j)+Nv*Nu*(1+k), i+Nu*(1+j)+Nv*Nu*(1+k)});
+            }
+        }
+    }
+    //Last left faces OR right faces // x = Nu
+    for( int j=0; j<Nv-1; j++)
+    {
+        for( int k=0; k<Nw-1; k++)
+        {
+            int i = Nu -1;
+            grid_d.add_triangle_index({i+Nu*j+Nv*Nu*k, i+Nu*(1+j)+Nv*Nu*k, i+Nu*(1+j)+Nv*Nu*(1+k)});
+            grid_d.add_triangle_index({i+Nu*j+Nv*Nu*k, i+Nu*(j)+Nv*Nu*(1+k), i+Nu*(1+j)+Nv*Nu*(1+k)});
+        }
+    }
+
+    //Last bottom OR upper // y = Nv
+    for( int i=0; i<Nu-1; i++)
+    {
+        for( int k=0; k<Nw-1; k++)
+        {
+            int j = Nv -1;
+            grid_d.add_triangle_index({i+Nu*j+Nv*Nv*k, i+1+Nu*j+Nv*Nu*k, i+1+Nu*(j)+Nv*Nu*(1+k)});
+            grid_d.add_triangle_index({i+Nu*j+Nv*Nv*k, i+Nu*(j)+Nv*Nu*(1+k), i+1+Nu*(j)+Nv*Nu*(1+k)});
+        }
+    }
+
+    //last faces OR back // z = Nw
+    for( int i=0; i<Nu-1; i++)
+    {
+        for( int j=0; j<Nv-1; j++)
+        {
+            int k = Nw -1;
+            grid_d.add_triangle_index({i+Nu*j+Nv*Nu*k, i+1+Nu*j+Nv*Nu*k, i+1+Nu*(1+j)+Nv*Nu*k});
+            grid_d.add_triangle_index({i+Nu*j+Nv*Nu*k, i+Nu*(j+1)+Nv*Nu*k, i+1+Nu*(1+j)+Nv*Nu*k});
+        }
+    }
+    std::cout << "Connectivity of grid_d : "<<grid_d.size_connectivity() << std::endl;
+
+    grid_d.fill_empty_field_by_default();
+    grid_d_opengl.fill_vbo(grid_d);
+    grid = grid_d;
+    grid.fill_empty_field_by_default();
+}
 
 void scene::generate_tube(float r, float x_center, float y_center, float Nu, float Nv)
 {
@@ -115,12 +220,10 @@ void scene::generate_tube(float r, float x_center, float y_center, float Nu, flo
             float y = y_center + r*sin(theta);
             float z = j/Nv;
             mesh_tube.add_vertex(vec3(x,y,z));
-            mesh_tube.add_color(vec3(j/Nv,1-j/Nv,1-i/Nu));
-
+            mesh_tube.add_color(getArcEnCielColor(j,Nv));
         }
     }
     std::cout << "size mesh tube " << mesh_tube.size_vertex() << std::endl;
-
     for ( int j = 0 ; j< Nv-1 ; j++)
     {
         for( int i = 0 ; i < Nu-1 ; i++)
@@ -129,12 +232,54 @@ void scene::generate_tube(float r, float x_center, float y_center, float Nu, flo
             mesh_tube.add_triangle_index({i+Nu*j, (i+1)+Nu*(j+1), (i+1)+Nu*j});
         }
     }
-
-
     mesh_tube.fill_empty_field_by_default();
     mesh_tube_displayed = mesh_tube;
     mesh_tube_opengl.fill_vbo(mesh_tube);
     mesh_tube_displayed_opengl.fill_vbo(mesh_tube_displayed);
+}
+
+vec3 scene::getArcEnCielColor(int j, int inter) //intervalle = Nv
+{
+    //vec3 color;
+    int x = (1530/inter)*j; //1530 = 6* 255 = max de colors pour cet algo
+    float r, g, b;
+    if ( x >= 0 && x<255 )
+    {
+        r=255;
+        g=x;
+        b=0;
+    }
+    if ( x >= 255 && x < 510)
+    {
+        r = 510 - x;
+        g = 255;
+        b = 0;
+    }
+    if( x >= 510 && x < 765)
+    {
+        r = 0;
+        g = 255;
+        b = x - 510;
+    }
+    if( x >= 765 && x < 1020)
+    {
+        r = 0;
+        g = 1020 - x;
+        b = 255;
+    }
+    if( x >= 1020 && x < 1275)
+    {
+        r = x - 1020;
+        g = 0;
+        b = 255;
+    }
+    if( x >= 1275 && x <= 1530)
+    {
+        r = 255;
+        g = 0;
+        b = 1530 - x ;
+    }
+    return vec3(r/255,g/255,b/255);
 }
 
 void scene::analyzeCsv(const std::vector<std::vector<std::string>>& csvfile)
@@ -169,21 +314,35 @@ void scene::analyzeCsv(const std::vector<std::vector<std::string>>& csvfile)
 
 void scene::animation(deformationArrays &deformation)
 {
-    if(baselineAnimation){
-        //std::cout << " to baseline" << std::endl;
-        applyDeformation(deformation.baseline, baselineAnimation);
+    if(baselineAnimation)
+    {
+        if(draw_tube_state)
+            applyDeformation(deformation.baseline, baselineAnimation);
+        if(draw_grid_state)
+            applyGridDeformation(deformation.baseline, baselineAnimation);
     }
 
     if(iop1animation)
     {
-        //std::cout << "to IOP1" <<std::endl;
-        applyDeformation(deformation.iop1, iop1animation);
+        if(draw_tube_state)
+            applyDeformation(deformation.iop1, iop1animation);
+        if(draw_grid_state)
+            applyGridDeformation(deformation.iop1, iop1animation);
     }
     if(iop2animation)
-        applyDeformation(deformation.iop2, iop2animation);
+    {
+        if(draw_tube_state)
+            applyDeformation(deformation.iop2, iop2animation);
+        if(draw_grid_state)
+            applyGridDeformation(deformation.iop2, iop2animation);
+    }
     if(recoveryAnimation)
-        applyDeformation(deformation.recovery, recoveryAnimation);
-    //std::cout << baselineAnimation;
+    {
+        if(draw_tube_state)
+            applyDeformation(deformation.recovery, recoveryAnimation);
+        if(draw_grid_state)
+            applyGridDeformation(deformation.recovery, recoveryAnimation);
+    }
 }
 
 void scene::applyDeformation( std::vector<float> &deformation, bool &animationb)
@@ -194,14 +353,9 @@ void scene::applyDeformation( std::vector<float> &deformation, bool &animationb)
 
     //Parcourir les deformations
     //appliquer les deformations Y selon l'axe 0 : Nv
-    int j=0;
 
     //temps is represented by tps in scene::scene.hpp
 
-    //mesh_tube.vertex(100).x() += timeStep*deformation[j]/100;
-
-
-     //std::cout << deformation.at(8) << std::endl;
 
     for( int j = 0 ; j < 600 ; j ++){
         for( int i=0; i< 20 ; i++){
@@ -212,31 +366,52 @@ void scene::applyDeformation( std::vector<float> &deformation, bool &animationb)
 
             mesh_tube_displayed.vertex(ind).x() =
                     mesh_tube_displayed.vertex(ind).x()
-                    - ( mesh_tube_displayed.vertex(ind).x() - mesh_tube.vertex(ind).x())
-                    + (deformation.at(j)*cos(theta)/10000)*tps;
+                    - (( mesh_tube_displayed.vertex(ind).x() - mesh_tube.vertex(ind).x())
+                    + deformation.at(j)*cos(theta)/100000)*tps;
             mesh_tube_displayed.vertex(ind).y() =
                     mesh_tube_displayed.vertex(ind).y()
-                    - ( mesh_tube_displayed.vertex(ind).y() - mesh_tube.vertex(ind).y())
-                    + (deformation.at(j)*sin(theta)/10000)*tps;
-
-            /*mesh_tube_displayed.vertex(ind).z() =
+                    - (( mesh_tube_displayed.vertex(ind).y() - mesh_tube.vertex(ind).y())
+                    + deformation.at(j)*sin(theta)/100000)*tps;
+/*
+            mesh_tube_displayed.vertex(ind).z() =
                                 mesh_tube_displayed.vertex(ind).z()
-                                - ( mesh_tube_displayed.vertex(ind).z() - mesh_tube.vertex(ind).z())
-                                + (deformation.at(j)*cos(theta)/10000)*tps;
-                                */
-
-            //std::cout << cos(theta) << " " << sin(theta) << std::endl;
-            //std::cout << ind << std::endl;
+                                -( ( mesh_tube_displayed.vertex(ind).z() - mesh_tube.vertex(ind).z())
+                                + deformation.at(j)*cos(theta)/10000)*tps;*/
         }
     }
     tps+=timeStep;
 
-
-
-
     mesh_tube_displayed_opengl.fill_vbo(mesh_tube_displayed);
-    //std::cout << T-tps << std::endl;
     if(T - tps < 10e-8){
+        animationb = false;
+        tps = 0.0f;
+    }
+}
+
+void scene::applyGridDeformation(std::vector<float> &deformation, bool &animationb)
+{
+    float timeStep = 1.0f;
+    float T = 1.0f;
+    float facteur = 600 / Nv_grid; //600 is the number of row in the csv file (hard coded I know)
+
+    for(int j=0 ; j < Nv_grid; j++) //chq slice sur y on change tout les voxels
+    {float defy = 0.0f;
+        for(int i=0; i<Nu_grid; i++ )
+        {
+            for(int k=0; k<Nw_grid; k++)
+            {
+                int ind = i + j*Nu_grid + k*Nu_grid*Nv_grid;
+
+                for(int n = 0 ; n < floor(facteur) ; n++)
+                    defy += deformation.at(n+j);
+
+                grid_d.vertex(ind).y() = grid_d.vertex(ind).y() + defy/10000000;
+            }
+        }std::cout << defy << std::endl;
+    }
+    tps+=timeStep;
+    grid_d_opengl.fill_vbo(grid_d);
+    if(T - tps < 10e-2){
         animationb = false;
         tps = 0.0f;
     }
