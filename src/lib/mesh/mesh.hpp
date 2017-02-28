@@ -49,11 +49,13 @@ public:
     triangle_index connectivity(int index) const;
     triangle_index& connectivity(int index);
 
+
     void add_vertex(vec3 const& v);
     void add_normal(vec3 const& n);
     void add_color(vec3 const& c);
     void add_texture_coord(vec2 const& t);
     void add_triangle_index(triangle_index const& idx);
+
 
 };
 

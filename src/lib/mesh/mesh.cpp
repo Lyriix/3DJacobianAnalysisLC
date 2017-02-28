@@ -38,6 +38,7 @@ vec2& mesh::texture_coord(int const index)               {return mesh_basic::tex
 triangle_index mesh::connectivity(int const index) const {return mesh_basic::connectivity(index);}
 triangle_index& mesh::connectivity(int const index)      {return mesh_basic::connectivity(index);}
 
+
 void mesh::add_vertex(vec3 const& v)                     {mesh_basic::add_vertex(v);}
 void mesh::add_normal(vec3 const& n)                     {mesh_basic::add_normal(n);}
 void mesh::add_color(vec3 const& c)                      {mesh_basic::add_color(c);}

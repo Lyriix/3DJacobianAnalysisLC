@@ -25,6 +25,7 @@
 #include "../3d/vec2.hpp"
 #include "triangle_index.hpp"
 
+
 #include <vector>
 
 
@@ -61,6 +62,8 @@ public:
     int size_texture_coord() const;
     /** Give the number of triangles */
     int size_connectivity() const;
+    /** give the number of squres */
+    int size_connectivity_carre() const;
 
     /******************************************/
     // FILLING
@@ -134,11 +137,13 @@ protected:
     triangle_index& connectivity(int index);
 
 
+
     void add_vertex(vec3 const& v);
     void add_normal(vec3 const& n);
     void add_color(vec3 const& c);
     void add_texture_coord(vec2 const& t);
     void add_triangle_index(triangle_index const& idx);
+
 
     /** Compute the two extremities of the Axis Aligned Bounding Box */
     void compute_mesh_aabb_extremities(vec3& corner_min,vec3& corner_max);
@@ -158,6 +163,7 @@ private:
 
     /** Internal storage for the triangles indices */
     std::vector<triangle_index> connectivity_data;
+
 };
 
 }

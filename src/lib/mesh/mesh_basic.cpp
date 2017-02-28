@@ -36,6 +36,7 @@ int mesh_basic::size_color() const {return color_data.size();}
 int mesh_basic::size_texture_coord() const {return texture_coord_data.size();}
 int mesh_basic::size_connectivity() const {return connectivity_data.size();}
 
+
 vec3 mesh_basic::vertex(int const index) const
 {
     ASSERT_CPE(index>=0,"Index ("+std::to_string(index)+") must be positive");
@@ -110,6 +111,9 @@ triangle_index& mesh_basic::connectivity(int const index)
 
     return connectivity_data[index];
 }
+
+
+
 
 void mesh_basic::add_vertex(vec3 const& v)
 {
@@ -206,6 +210,7 @@ void mesh_basic::fill_normal()
         //get current triangle index
         triangle_index const& tri=connectivity(k_triangle);
 
+        //std::cout << "tri index " << tri << std::endl;
         //check that the index given have correct values
         ASSERT_CPE(tri.u0()>=0 && tri.u0()<N_vertex,"Incorrect triangle index");
         ASSERT_CPE(tri.u1()>=0 && tri.u1()<N_vertex,"Incorrect triangle index");
@@ -301,7 +306,7 @@ bool mesh_basic::valid_mesh() const
         return false;
     }
     //mesh_basic should have at least one triangle
-    if(size_connectivity()<=0)
+    if(size_connectivity()<=0 )
     {
         std::cout<<"Connectivity has size 0";
         return false;
