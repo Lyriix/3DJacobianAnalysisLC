@@ -31,7 +31,10 @@ public:
     void change_draw_state();
     /** Set the wireframe on/off */
     void wireframe(bool est_actif);
-
+    /** Set the drawing of tube on/off */
+    void change_draw_tube_state();
+    /** Set the drawing of grid on/off */
+    void change_draw_grid_state();
     /** Deform the current mesh to the deformation */
     void deform_to_baseline();
     void deform_to_iop1();

@@ -188,6 +188,16 @@ void myWidgetGL::wireframe(bool const is_wireframe)
     updateGL();
 }
 
+void myWidgetGL::change_draw_tube_state()
+{
+    scene_3d.change_draw_tube_state();
+}
+
+void myWidgetGL::change_draw_grid_state()
+{
+    scene_3d.change_draw_grid_state();
+}
+
 void myWidgetGL::deform_to_baseline()
 {
     scene_3d.setBaselineAnimation();

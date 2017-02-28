@@ -51,7 +51,7 @@
         </property>
        </widget>
       </item>
-      <item row="10" column="0">
+      <item row="12" column="0">
        <widget class="QPushButton" name="quit">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -70,35 +70,35 @@
         </property>
        </widget>
       </item>
-      <item row="5" column="0">
+      <item row="7" column="0">
        <widget class="QRadioButton" name="recovery">
         <property name="text">
          <string>recovery</string>
         </property>
        </widget>
       </item>
-      <item row="2" column="0">
+      <item row="4" column="0">
        <widget class="QRadioButton" name="baseline">
         <property name="text">
          <string>Baseline</string>
         </property>
        </widget>
       </item>
-      <item row="4" column="0">
+      <item row="6" column="0">
        <widget class="QRadioButton" name="iop2">
         <property name="text">
          <string>iop2</string>
         </property>
        </widget>
       </item>
-      <item row="3" column="0">
+      <item row="5" column="0">
        <widget class="QRadioButton" name="iop1">
         <property name="text">
          <string>iop1</string>
         </property>
        </widget>
       </item>
-      <item row="6" column="0">
+      <item row="8" column="0">
        <widget class="QPushButton" name="draw">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -114,6 +114,20 @@
         </property>
         <property name="text">
          <string>Draw</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QPushButton" name="tube_button">
+        <property name="text">
+         <string>Draw tube</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QPushButton" name="grid_button">
+        <property name="text">
+         <string>Draw grid</string>
         </property>
        </widget>
       </item>

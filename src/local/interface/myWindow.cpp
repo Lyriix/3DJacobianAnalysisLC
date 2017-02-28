@@ -37,6 +37,8 @@ myWindow::myWindow(QWidget *parent)
     connect(ui->iop1,SIGNAL(clicked()),this,SLOT(action_deform_to_iop1()));
     connect(ui->iop2,SIGNAL(clicked()), this, SLOT(action_deform_to_iop2()));
     connect(ui->recovery,SIGNAL(clicked()), this, SLOT(action_deform_to_recovery()));
+    connect(ui->tube_button,SIGNAL(clicked()), this, SLOT(action_tube()));
+    connect(ui->grid_button,SIGNAL(clicked()),this,SLOT(action_grid()));
 }
 
 myWindow::~myWindow()
@@ -56,6 +58,15 @@ void myWindow::action_wireframe()
 {
     bool const state_wireframe=ui->wireframe->isChecked();
     glWidget->wireframe(state_wireframe);
+}
+
+void myWindow::action_tube()
+{
+    glWidget->change_draw_tube_state();
+}
+void myWindow::action_grid()
+{
+    glWidget->change_draw_grid_state();
 }
 
 void myWindow::action_deform_to_baseline()

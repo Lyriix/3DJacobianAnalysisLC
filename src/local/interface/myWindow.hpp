@@ -35,6 +35,10 @@ private slots:
     void action_draw();
     /** Set the Wireframe mode for the meshes */
     void action_wireframe();
+    /** Set the draw tube mode */
+    void action_tube();
+    /** Set the draw grid mode */
+    void action_grid();
     /** Enable the deformation to the deformation state */
     void action_deform_to_baseline();
     void action_deform_to_iop1();
