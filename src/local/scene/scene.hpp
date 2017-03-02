@@ -14,11 +14,15 @@
 #include "../../lib/mesh/mesh.hpp"
 #include "../../lib/opengl/mesh_opengl.hpp"
 #include "../../lib/interface/camera_matrices.hpp"
+#include "../itk/ITKutils.hpp"
 
+#include <itkVector.h>
 #include <vector>
 
 
 class myWidgetGL;
+
+
 
 class scene
 {
@@ -52,33 +56,34 @@ public:
     int& set_Nu_grid() ;
     int& set_Nv_grid() ;
     int& set_Nw_grid() ;
+
+    /** Structure to analyze the csv "per slice" */
+    struct deformationArrays {
+        std::vector<itk::Vector<float,3>> baseline;  //mean of baseline a and baseline b (itkVector [X,Y,Z] component of the dformation field
+        std::vector<itk::Vector<float,3>> iop1;      //mean of iop1 and iop2
+        std::vector<itk::Vector<float,3>> iop2;      //...
+        std::vector<itk::Vector<float,3>> recovery;  //...
+    };
+
     /** Generate a tube */
     void generate_tube(float r, float x_center, float y_center, float Nu, float Nv);
     cpe::vec3 getArcEnCielColor(int j, int inter);
 
     /** generate a grid */
     void generate_grid(int Nu, int Nv, int Nw);
-    /** Generate a grid */
 
-    /** Analyze the deformation field from the Csv */
+    /** \brief Set deformation arrays */
+    deformationArrays& set_deformationArrays();
 
-    void analyzeCsv(const std::vector<std::vector<std::string>>& csvfile);
 
-    /** Structure to analyze the csv */
-    struct deformationArrays {
-        std::vector<float> baseline;  //mean of baseline a and baseline b
-        std::vector<float> iop1;      //mean of iop1 and iop2
-        std::vector<float> iop2;      //...
-        std::vector<float> recovery;  //...
-    };
     /** Method called at every frame to perform animations on a draw object*/
     void animation(deformationArrays &deformation);
 
 
     /** Method called by animation at every frame to perform the chosen animation on a TUBE */
-    void applyDeformation(std::vector<float>& deformation, bool &animationb);
+    void applyDeformation(std::vector<itk::Vector<float,3>>& deformation, bool &animationb);
     /** Method called by animation_grid to apply a deformation on a given GRID */
-    void applyGridDeformation(std::vector<float> &deformation, bool &animationb);
+    void applyGridDeformation(std::vector<itk::Vector<float,3>> &deformation, bool &animationb);
 
 
     /** Methods called to start animations */
@@ -130,7 +135,9 @@ private:
     cpe::mesh grid;
     cpe::mesh_opengl grid_opengl;
 
-    /** Structure to analyze the csv */
+    /** itk */
+    ITKutils itkObject;
+    /** Structure to analyze the deformation */
     //We are gonna compute the means
     deformationArrays deformation;
 

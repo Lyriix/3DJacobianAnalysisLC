@@ -12,7 +12,7 @@
 
 #include "../../lib/common/error_handling.hpp"
 #include "../../lib/common/exception_cpe.hpp"
-#include "../../readCSV.hpp"
+
 
 #include <cmath>
 #include <string>
@@ -25,6 +25,7 @@ int& scene::set_Nv_tube() {return Nv_tube;}
 int& scene::set_Nu_grid() {return Nu_grid;}
 int& scene::set_Nv_grid() {return Nv_grid;}
 int& scene::set_Nw_grid() {return Nw_grid;}
+scene::deformationArrays& scene::set_deformationArrays(){return deformation;}
 
 void scene::load_scene()
 {
@@ -35,34 +36,43 @@ void scene::load_scene()
     texture_default = load_texture_file("data/white.jpg");
     shader_program_id = read_shader("shaders/shader_mesh.vert",
                                     "shaders/shader_mesh.frag"); PRINT_OPENGL_ERROR();
-
-    std::string csvName("/home/charly/workspace/OphtalmologyProject/JacobianAnalysis/3D/Modelisation/data/YY.csv");
-
-    std::vector<std::vector<std::string>> bcd = readCsvFile(csvName);
-    analyzeCsv(bcd);
-
     //*****************************************//
     // Generate user defined mesh              //
     //*****************************************//
-
     float r=0.6f;
     float h=1.0f;
-    //int Nu=20; int Nv= 600;
+
     Nu_tube = 20;
     Nv_tube = 600;
-    Nu_grid = 40;
-    Nv_grid = 40;
-    Nw_grid = 40;
+    Nu_grid = 100;
+    Nv_grid = 600;
+    Nw_grid = 100;
+
     scene::generate_tube(r,0.0f,0.0f,Nu_tube,Nv_tube);
     scene::generate_grid(Nu_grid,Nv_grid,Nw_grid);
+    std::string loc = "/home/charly/workspace/OphtalmologyProject/DeformationFieldAnalysis/Modelisation(PerVoxelwithItk)/data/InverseWarp/";
+    std::cout << "ccccc" << std::endl;
+    itkObject.read_file(loc + "den500101InverseWarp.nii.gz", "baselinea");
+    itkObject.read_file(loc + "den500211InverseWarp.nii.gz", "baselineb");
+    itkObject.read_file(loc + "den530121InverseWarp.nii.gz", "iop1a");
+    itkObject.read_file(loc + "den530231InverseWarp.nii.gz", "iop1b");
+    itkObject.read_file(loc + "den550141InverseWarp.nii.gz", "iop2a");
+    itkObject.read_file(loc + "den550251InverseWarp.nii.gz", "iop2b");
+    itkObject.read_file(loc + "den590161InverseWarp.nii.gz", "recoverya");
+    itkObject.read_file(loc + "den590271InverseWarp.nii.gz", "recoveryb");
+
+    itkObject.analyze_files();
+
+    deformation.baseline = itkObject.get_deformations_baseline();
+    deformation.iop1 = itkObject.get_deformations_iop1();
+    deformation.iop2 = itkObject.get_deformations_iop2();
+    deformation.recovery = itkObject.get_deformations_recovery();
+
+
 }
-
-
 
 void scene::draw_scene()
 {
-
-
     //Setup uniform parameters
     glUseProgram(shader_program_id);                                                                           PRINT_OPENGL_ERROR();
 
@@ -75,15 +85,11 @@ void scene::draw_scene()
     glUniformMatrix4fv(get_uni_loc(shader_program_id,"normal_matrix"),1,false,cam.normal.pointer());           PRINT_OPENGL_ERROR();
 
     //Draw the meshes
-
-    //mesh_tube_opengl.draw();
     if(draw_tube_state)
-    {
         mesh_tube_displayed_opengl.draw();
-
-    }
     if(draw_grid_state)
         grid_d_opengl.draw();
+
     animation(deformation);
 }
 
@@ -110,41 +116,21 @@ void scene::set_widget(myWidgetGL* widget_param)
 {
     pwidget=widget_param;
 }
-/* //TEST
-void scene::generate_grid(int Nu, int Nv, int Nw)
-{
-    grid_d.add_vertex(vec3(0.0f,0.0f,0.0f));
-    grid_d.add_vertex(vec3(0.0f,1.0f,0.0f));
-    grid_d.add_vertex(vec3(1.0f,1.0f,0.0f));
-
-    grid_d.add_vertex(vec3(1.0f,0.0f,0.0f));
-
-    grid_d.add_vertex(vec3(0.0f,0.0f,1.0f));
-
-    grid_d.add_triangle_index({0,1,2});
-    grid_d.add_triangle_index({0,2,3});
-    grid_d.add_triangle_index({0,1,4});
-    grid_d.fill_empty_field_by_default();
-    grid_d_opengl.fill_vbo(grid_d);
-}
-*/
 
 void scene::generate_grid(int Nu, int Nv, int Nw)
 {
     float u=0, v=0, w=0;
     for(int k=0; k<Nw; k++)
     {
-         w = (float)k/Nw;
+        w = (float)k/Nw;
         for( int j=0; j<Nv; j++)
         {
-             v = (float)j/Nv;
+            v = (float)j/Nv;
             for( int i=0; i<Nu; i++)
             {
-                 u = (float)i/Nu;
+                u = (float)i/Nu;
                 grid_d.add_vertex(vec3(u,v,w));
                 grid_d.add_color(getArcEnCielColor(k,Nw));
-               // grid_d.add_color(vec3(1.0f,0.0f,0.0f));
-               // std::cout << " vec3 " <<u << " " << v << " " << w<< std::endl;
             }
         }
     }
@@ -158,7 +144,6 @@ void scene::generate_grid(int Nu, int Nv, int Nw)
                 //faces
                 grid_d.add_triangle_index({i+Nu*j+Nv*Nu*k, i+1+Nu*j+Nv*Nu*k, i+1+Nu*(1+j)+Nv*Nu*k});
                 grid_d.add_triangle_index({i+Nu*j+Nv*Nu*k, i+Nu*(1+j)+Nv*Nu*k, i+1+Nu*(1+j)+Nv*Nu*k});
-                //std::cout<<"ajout de "<< i+Nv*j+Nv*Nu*k <<" "<< i+1+Nv*j+Nv*Nu*k <<" "<< i+1+Nv*(1+j)+Nv*Nu*k<<std::endl;
                 //bottom
                 grid_d.add_triangle_index({i+Nu*j+Nv*Nu*k, i+1+Nu*j+Nv*Nu*k, i+1+Nu*(j)+Nv*Nu*(1+k)});
                 grid_d.add_triangle_index({i+Nu*j+Nv*Nu*k, i+Nu*(j)+Nv*Nu*(1+k), i+1+Nu*(j)+Nv*Nu*(1+k)});
@@ -178,7 +163,6 @@ void scene::generate_grid(int Nu, int Nv, int Nw)
             grid_d.add_triangle_index({i+Nu*j+Nv*Nu*k, i+Nu*(j)+Nv*Nu*(1+k), i+Nu*(1+j)+Nv*Nu*(1+k)});
         }
     }
-
     //Last bottom OR upper // y = Nv
     for( int i=0; i<Nu-1; i++)
     {
@@ -189,7 +173,6 @@ void scene::generate_grid(int Nu, int Nv, int Nw)
             grid_d.add_triangle_index({i+Nu*j+Nv*Nv*k, i+Nu*(j)+Nv*Nu*(1+k), i+1+Nu*(j)+Nv*Nu*(1+k)});
         }
     }
-
     //last faces OR back // z = Nw
     for( int i=0; i<Nu-1; i++)
     {
@@ -200,12 +183,12 @@ void scene::generate_grid(int Nu, int Nv, int Nw)
             grid_d.add_triangle_index({i+Nu*j+Nv*Nu*k, i+Nu*(j+1)+Nv*Nu*k, i+1+Nu*(1+j)+Nv*Nu*k});
         }
     }
-    std::cout << "Connectivity of grid_d : "<<grid_d.size_connectivity() << std::endl;
 
+    std::cout << "grid connectivity " << grid_d.size_connectivity() << std::endl;
     grid_d.fill_empty_field_by_default();
-    grid_d_opengl.fill_vbo(grid_d);
     grid = grid_d;
-    grid.fill_empty_field_by_default();
+    grid_opengl.fill_vbo(grid);
+    grid_d_opengl.fill_vbo(grid_d);
 }
 
 void scene::generate_tube(float r, float x_center, float y_center, float Nu, float Nv)
@@ -282,35 +265,6 @@ vec3 scene::getArcEnCielColor(int j, int inter) //intervalle = Nv
     return vec3(r/255,g/255,b/255);
 }
 
-void scene::analyzeCsv(const std::vector<std::vector<std::string>>& csvfile)
-{
-    for(auto const & row : csvfile)
-    {
-        for(int i = 0; i < row.size() ; i+=2)
-        {
-
-            if( i == 0 )
-                deformation.baseline.push_back(
-                            (std::stof(row[0]) + std::stof(row[1])) / 2
-                        - (std::stof(row[i]) + std::stof(row[1+i])) / 2 );
-            if( i == 2 )
-                deformation.iop1.push_back( (std::stof(row[0]) + std::stof(row[1])) / 2
-                        - (std::stof(row[i]) + std::stof(row[1+i])) / 2);
-            if( i == 4 )
-                deformation.iop2.push_back( (std::stof(row[0]) + std::stof(row[1])) / 2
-                        - (std::stof(row[i]) + std::stof(row[1+i])) / 2);
-            if( i == 6 )
-                deformation.recovery.push_back( (std::stof(row[0]) + std::stof(row[1])) / 2
-                        - (std::stof(row[i]) + std::stof(row[1+i])) / 2);
-
-            //std::cout << (std::stof(row[1]) + std::stof(row[2])) / 2
-              //      - (std::stof(row[i]) + std::stof(row[1+i])) / 2 << std::endl;
-            //std::cout << row.size() << std::endl;
-            //std::cout << typeid(row[i]).name() << std::endl;
-        }
-    }
-
-}
 
 void scene::animation(deformationArrays &deformation)
 {
@@ -345,7 +299,7 @@ void scene::animation(deformationArrays &deformation)
     }
 }
 
-void scene::applyDeformation( std::vector<float> &deformation, bool &animationb)
+void scene::applyDeformation( std::vector<itk::Vector<float,3>> &deformation, bool &animationb)
 {
 
     float timeStep = 0.02f;
@@ -355,15 +309,13 @@ void scene::applyDeformation( std::vector<float> &deformation, bool &animationb)
     //appliquer les deformations Y selon l'axe 0 : Nv
 
     //temps is represented by tps in scene::scene.hpp
-
-
-    for( int j = 0 ; j < 600 ; j ++){
-        for( int i=0; i< 20 ; i++){
-            int ind = i + 20*(j) ;
-            float theta = static_cast<float>(i) / 20* 2* M_PI;
+    for( int j = 0 ; j < Nv_tube ; j ++){
+        for( int i=0; i< Nu_tube ; i++){
+            int ind = i + Nu_tube*(j) ;
+            float theta = static_cast<float>(i) / Nu_tube* 2* M_PI;
             //mesh_tube_displayed.vertex(ind).x() +=  (deformation.at(j)*cos(theta)/1000);
             //mesh_tube_displayed.vertex(ind).y() += (deformation.at(j)*sin(theta)/1000);
-
+            /*
             mesh_tube_displayed.vertex(ind).x() =
                     mesh_tube_displayed.vertex(ind).x()
                     - (( mesh_tube_displayed.vertex(ind).x() - mesh_tube.vertex(ind).x())
@@ -372,7 +324,8 @@ void scene::applyDeformation( std::vector<float> &deformation, bool &animationb)
                     mesh_tube_displayed.vertex(ind).y()
                     - (( mesh_tube_displayed.vertex(ind).y() - mesh_tube.vertex(ind).y())
                     + deformation.at(j)*sin(theta)/100000)*tps;
-/*
+                    */
+            /*
             mesh_tube_displayed.vertex(ind).z() =
                                 mesh_tube_displayed.vertex(ind).z()
                                 -( ( mesh_tube_displayed.vertex(ind).z() - mesh_tube.vertex(ind).z())
@@ -388,31 +341,62 @@ void scene::applyDeformation( std::vector<float> &deformation, bool &animationb)
     }
 }
 
-void scene::applyGridDeformation(std::vector<float> &deformation, bool &animationb)
+void scene::applyGridDeformation(std::vector<itk::Vector<float,3>> &deformation, bool &animationb)
 {
-    float timeStep = 1.0f;
-    float T = 1.0f;
-    float facteur = 600 / Nv_grid; //600 is the number of row in the csv file (hard coded I know)
+    /** deformation is a 3-D vector with X,Y,Z component of the deformation field at the voxel (i,j,k) */
 
-    for(int j=0 ; j < Nv_grid; j++) //chq slice sur y on change tout les voxels
-    {float defy = 0.0f;
-        for(int i=0; i<Nu_grid; i++ )
+    float timeStep = 0.2f;
+    float T = 1.0f;
+
+
+    std::vector<int> size_of_deformation_field = itkObject.get_deformation_size();
+
+    float facteurx = size_of_deformation_field[0] / Nu_grid;
+    float facteury = size_of_deformation_field[1] / Nv_grid;
+    float facteurz = size_of_deformation_field[2] / Nw_grid;
+
+    for(int i=0 ; i < Nu_grid; i++) //chq slice sur y on change tout les voxels
+    {
+        float defy = 0.0f;
+        for(int j=0; j<Nv_grid; j++ )
         {
             for(int k=0; k<Nw_grid; k++)
             {
-                int ind = i + j*Nu_grid + k*Nu_grid*Nv_grid;
 
-                for(int n = 0 ; n < floor(facteur) ; n++)
-                    defy += deformation.at(n+j);
+                for(int x=0 ; x < facteurx; x++)
+                {
+                    for(int y=0; y<facteury; y++)
+                    {
+                        for(int z=0; z<facteurz; z++)
+                        {
+                            //We need to ressample the deformations to fit the grid
+                            int ind = (i+x) + (j+y)*size_of_deformation_field[0] + (k+z)*size_of_deformation_field[0]*size_of_deformation_field[1];
+                            defy += deformation.at(ind)[1];
+                        }
+                    }
+                   // std::cout << defy << std::endl;
+                    int ind_grid = i + j*Nu_grid + k*Nu_grid*Nv_grid;
+                    grid_d.vertex(ind_grid).y() +=
+                            -( (grid_d.vertex(ind_grid).y()-grid.vertex(ind_grid).y()) +defy )*tps/10000000;
+                }
+                //std::cout<< i <<" " << j <<" "<< k <<std::endl;
+                /* if(i==10 && j==4 && k==25 ){
+                std::cout << deformation.at(i + j*size_of_deformation_field[0] + k*size_of_deformation_field[0]*size_of_deformation_field[1])[0] << std::endl;
+                std::cout << deformation.at(i + j*size_of_deformation_field[0] + k*size_of_deformation_field[0]*size_of_deformation_field[1])[1] << std::endl;
+                std::cout << deformation.at(i + j*size_of_deformation_field[0] + k*size_of_deformation_field[0]*size_of_deformation_field[1])[2] << std::endl;
+                std::cout << deformation.size() << std::endl ;
+                */
 
-                grid_d.vertex(ind).y() = grid_d.vertex(ind).y() + defy/10000000;
+
             }
-        }std::cout << defy << std::endl;
+        }
     }
+
     tps+=timeStep;
     grid_d_opengl.fill_vbo(grid_d);
     if(T - tps < 10e-2){
         animationb = false;
         tps = 0.0f;
     }
+
 }
