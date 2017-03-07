@@ -60,25 +60,29 @@ public:
     void generate_grid(int Nu, int Nv, int Nw);
     /** Generate a grid */
 
-    /** Analyze the deformation field from the Csv */
 
-    void analyzeCsv(const std::vector<std::vector<std::string>>& csvfile);
 
-    /** Structure to analyze the csv */
+
+
+    /** Structure to analyze the csv "per slice" */
     struct deformationArrays {
         std::vector<float> baseline;  //mean of baseline a and baseline b
         std::vector<float> iop1;      //mean of iop1 and iop2
         std::vector<float> iop2;      //...
         std::vector<float> recovery;  //...
     };
+
+    /** Analyze the deformation field from the Csv "per slice" */
+    void analyzeCsv(const std::vector<std::vector<std::string>>& csvfile, deformationArrays &deform);
+
     /** Method called at every frame to perform animations on a draw object*/
-    void animation(deformationArrays &deformation);
+    void animation();
 
 
     /** Method called by animation at every frame to perform the chosen animation on a TUBE */
-    void applyDeformation(std::vector<float>& deformation, bool &animationb);
+    void applyDeformation(std::vector<float>& deformation, int axis);
     /** Method called by animation_grid to apply a deformation on a given GRID */
-    void applyGridDeformation(std::vector<float> &deformation, bool &animationb);
+    void applyGridDeformation(std::vector<float> &deformation, int axis);
 
 
     /** Methods called to start animations */
@@ -131,14 +135,20 @@ private:
     cpe::mesh_opengl grid_opengl;
 
     /** Structure to analyze the csv */
-    //We are gonna compute the means
-    deformationArrays deformation;
+
+    deformationArrays deformationYX;
+    deformationArrays deformationYY;
+    deformationArrays deformationYZ;
+
+    float dmax = 0.0f;
+    float dmin = 0.0f;
 
     bool baselineAnimation = false;
     bool iop1animation = false;
     bool iop2animation = false;
     bool recoveryAnimation = false;
     /** Variable for Dragon */
+    float T = 1.0f;
     float tps=0.0f;
     float op = 1.0f;
 

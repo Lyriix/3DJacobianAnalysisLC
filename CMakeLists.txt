@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 2.6)
 
 
 
-project(pgm)
+project(DeformationFieldPerSlice)
 
 FIND_PACKAGE(Qt4 REQUIRED)
 FIND_PACKAGE(OpenGL REQUIRED)
@@ -40,13 +40,13 @@ QT4_WRAP_UI(UI_GENERATED ${UI})
 
 
 add_executable(
-  pgm
+  DeformationFieldPerSlice
   ${source_files}
   ${UI_GENERATED}
   ${MOC_GENERATED}
 )
 
 
-TARGET_LINK_LIBRARIES(pgm -lm -ldl -lGLEW ${OPENGL_LIBRARIES} ${QT_LIBRARIES} ${QT_GL_LIBRARIES} ${QT_QTOPENGL_LIBRARY})
+TARGET_LINK_LIBRARIES(DeformationFieldPerSlice -lm -ldl -lGLEW ${OPENGL_LIBRARIES} ${QT_LIBRARIES} ${QT_GL_LIBRARIES} ${QT_QTOPENGL_LIBRARY})
 
 
